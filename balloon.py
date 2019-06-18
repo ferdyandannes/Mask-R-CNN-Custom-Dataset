@@ -21,7 +21,7 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
     python3 balloon.py train --dataset=/home/ee401_2/ferdyan_train/mask-rcnn_dataset --weights=imagenet
 
     # Apply color splash to an image
-    python3 balloon.py splash --weights=/path/to/weights/file.h5 --image=<URL or path to file>
+    python3 balloon.py splash --weights=/home/ee401_2/ferdyan_train/Mask-RCNN-Coba/logs/balloon20190616T1725/mask_rcnn_balloon_0139.h5 --image=<URL or path to file>
 
     # Apply color splash to video using the last weights you trained
     python3 balloon.py splash --weights=last --video=<URL or path to file>
@@ -44,6 +44,7 @@ from mrcnn import model as modellib, utils
 
 # Path to trained weights file
 COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+R101_WEIGHTS_PATH = os.path.join(ROOT_DIR, "resnet101_weights_tf_dim_ordering_tf_kernels_notop.h5")
 
 # Directory to save logs and model checkpoints, if not provided
 # through the command line argument --logs
@@ -69,7 +70,7 @@ class BalloonConfig(Config):
     NUM_CLASSES = 1 + 24  # Background + balloon
 
     # Number of training steps per epoch
-    STEPS_PER_EPOCH = 1000
+    STEPS_PER_EPOCH = 2000
 
     # Skip detections with < 90% confidence
     DETECTION_MIN_CONFIDENCE = 0.9
@@ -132,7 +133,7 @@ class BalloonDataset(utils.Dataset):
         # }
         # We mostly care about the x and y coordinates of each region
         # Note: In VIA 2.0, regions was changed from a dict to a list.
-        annotations = json.load(open(os.path.join("/home/ee401_2/ferdyan_train/mask-rcnn_dataset/anno", "dataset.json")))
+        annotations = json.load(open(os.path.join(dataset_dir, "dataset.json")))
         annotations = list(annotations.values())  # don't need the dict keys
 
         # The VIA tool saves images in the JSON even if they don't have any
@@ -218,7 +219,7 @@ def train(model):
     print("Training network heads")
     model.train(dataset_train, dataset_val,
                 learning_rate=config.LEARNING_RATE,
-                epochs=300,
+                epochs=3000,
                 layers='heads')
 
 
@@ -367,6 +368,7 @@ if __name__ == '__main__':
         weights_path = model.find_last()
     elif args.weights.lower() == "imagenet":
         # Start from ImageNet trained weights
+        #weights_path = R101_WEIGHTS_PATH 
         weights_path = model.get_imagenet_weights()
     else:
         weights_path = args.weights
@@ -381,7 +383,8 @@ if __name__ == '__main__':
             "mrcnn_bbox", "mrcnn_mask"])
     else:
         model.load_weights(weights_path, by_name=True)
-
+        
+        
     # Train or evaluate
     if args.command == "train":
         train(model)
