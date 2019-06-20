@@ -21,7 +21,8 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
     python3 balloon.py train --dataset=/home/ee401_2/ferdyan_train/mask-rcnn_dataset --weights=imagenet
 
     # Apply color splash to an image
-    python3 balloon.py splash --weights=/home/ee401_2/ferdyan_train/Mask-RCNN-Coba/logs/balloon20190616T1725/mask_rcnn_balloon_0139.h5 --image=<URL or path to file>
+    python3 balloon.py splash --weights=/home/ee401_2/ferdyan_train/Mask-RCNN-Coba/logs/balloon20190616T1725/mask_rcnn_balloon_0139.h5 
+    --image=<URL or path to file>
 
     # Apply color splash to video using the last weights you trained
     python3 balloon.py splash --weights=last --video=<URL or path to file>
@@ -73,7 +74,7 @@ class BalloonConfig(Config):
     STEPS_PER_EPOCH = 2000
 
     # Skip detections with < 90% confidence
-    DETECTION_MIN_CONFIDENCE = 0.9
+    DETECTION_MIN_CONFIDENCE = 0.6
 
 
 ############################################################
@@ -146,10 +147,16 @@ class BalloonDataset(utils.Dataset):
             # the outline of each object instance. These are stores in the
             # shape_attributes (see json format above)
             # The if condition is needed to support VIA versions 1.x and 2.x.
+            
             if type(a['regions']) is dict:
                 polygons = [r['shape_attributes'] for r in a['regions'].values()]
+                objects = [s['region_attributes'] for s in a['regions'].values()]
             else:
-                polygons = [r['shape_attributes'] for r in a['regions']] 
+                polygons = [r['shape_attributes'] for r in a['regions']]
+                objects = [s['region_attributes'] for s in a['regions']] 
+            
+
+            num_ids = [int(n['object']) for n in objects]
 
             # load_mask() needs the image size to convert polygons to masks.
             # Unfortunately, VIA doesn't include it in JSON, so we must read
@@ -163,7 +170,8 @@ class BalloonDataset(utils.Dataset):
                 image_id=a['filename'],  # use file name as a unique image id
                 path=image_path,
                 width=width, height=height,
-                polygons=polygons)
+                polygons=polygons,
+                num_ids=num_ids)
 
     def load_mask(self, image_id):
         """Generate instance masks for an image.
@@ -176,7 +184,7 @@ class BalloonDataset(utils.Dataset):
         image_info = self.image_info[image_id]
         if image_info["source"] != "balloon":
             return super(self.__class__, self).load_mask(image_id)
-
+        num_ids = image_info['num_ids']
         # Convert polygons to a bitmap mask of shape
         # [height, width, instance_count]
         info = self.image_info[image_id]
@@ -189,7 +197,8 @@ class BalloonDataset(utils.Dataset):
 
         # Return mask, and array of class IDs of each instance. Since we have
         # one class ID only, we return an array of 1s
-        return mask.astype(np.bool), np.ones([mask.shape[-1]], dtype=np.int32)
+        num_ids = np.array(num_ids, dtype=np.int32)
+        return mask, num_ids
 
     def image_reference(self, image_id):
         """Return the path of the image."""
