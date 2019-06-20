@@ -12,7 +12,8 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
        the command line as such:
 
     # Train a new model starting from pre-trained COCO weights
-    python3 balloon.py train --dataset=/path/to/balloon/dataset --weights=coco
+    python3 balloon.py train --dataset=/home/ee401_2/ferdyan_train/mask-rcnn_dataset/training_baru --weights=coco
+
 
     # Resume training a model that you had trained earlier
     python3 balloon.py train --dataset=/path/to/balloon/dataset --weights=last
@@ -21,8 +22,8 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
     python3 balloon.py train --dataset=/home/ee401_2/ferdyan_train/mask-rcnn_dataset --weights=imagenet
 
     # Apply color splash to an image
-    python3 balloon.py splash --weights=/home/ee401_2/ferdyan_train/Mask-RCNN-Coba/logs/balloon20190616T1725/mask_rcnn_balloon_0139.h5 
-    --image=<URL or path to file>
+    python3 balloon.py splash --weights='mask_rcnn_balloon_0325.h5' --image='/home/ee401_2/ferdyan_train/Mask-RCNN-Coba/images/ski.jpg'
+
 
     # Apply color splash to video using the last weights you trained
     python3 balloon.py splash --weights=last --video=<URL or path to file>
@@ -61,7 +62,7 @@ class BalloonConfig(Config):
     Derives from the base Config class and overrides some values.
     """
     # Give the configuration a recognizable name
-    NAME = "balloon"
+    NAME = "name"
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
@@ -89,30 +90,30 @@ class BalloonDataset(utils.Dataset):
         subset: Subset to load: train or val
         """
         # Add classes. We have only one class to add.
-        self.add_class("balloon", 1, "Basketball")
-        self.add_class("balloon", 2, "BasketballDunk")
-        self.add_class("balloon", 3, "Biking")
-        self.add_class("balloon", 4, "CliffDiving")
-        self.add_class("balloon", 5, "CricketBowling")
-        self.add_class("balloon", 6, "Diving")
-        self.add_class("balloon", 7, "Fencing")
-        self.add_class("balloon", 8, "FloorGymnastics")
-        self.add_class("balloon", 9, "GolfSwing")
-        self.add_class("balloon", 10, "HorseRiding")
-        self.add_class("balloon", 11, "IceDancing")
-        self.add_class("balloon", 12, "LongJump")
-        self.add_class("balloon", 13, "PoleVault")
-        self.add_class("balloon", 14, "RopeClimbing")
-        self.add_class("balloon", 15, "SalsaSpin")
-        self.add_class("balloon", 16, "SkateBoarding")
-        self.add_class("balloon", 17, "Skiing")
-        self.add_class("balloon", 18, "Skijet")
-        self.add_class("balloon", 19, "SoccerJuggling")
-        self.add_class("balloon", 20, "Surfing")
-        self.add_class("balloon", 21, "TennisSwing")
-        self.add_class("balloon", 22, "TrampolineJumping")
-        self.add_class("balloon", 23, "VolleyballSpiking")
-        self.add_class("balloon", 24, "WalkingWithDog")
+        self.add_class("name", 1, "Basketball")
+        self.add_class("name", 2, "BasketballDunk")
+        self.add_class("name", 3, "Biking")
+        self.add_class("name", 4, "CliffDiving")
+        self.add_class("name", 5, "CricketBowling")
+        self.add_class("name", 6, "Diving")
+        self.add_class("name", 7, "Fencing")
+        self.add_class("name", 8, "FloorGymnastics")
+        self.add_class("name", 9, "GolfSwing")
+        self.add_class("name", 10, "HorseRiding")
+        self.add_class("name", 11, "IceDancing")
+        self.add_class("name", 12, "LongJump")
+        self.add_class("name", 13, "PoleVault")
+        self.add_class("name", 14, "RopeClimbing")
+        self.add_class("name", 15, "SalsaSpin")
+        self.add_class("name", 16, "SkateBoarding")
+        self.add_class("name", 17, "Skiing")
+        self.add_class("name", 18, "Skijet")
+        self.add_class("name", 19, "SoccerJuggling")
+        self.add_class("name", 20, "Surfing")
+        self.add_class("name", 21, "TennisSwing")
+        self.add_class("name", 22, "TrampolineJumping")
+        self.add_class("name", 23, "VolleyballSpiking")
+        self.add_class("name", 24, "WalkingWithDog")
 
         # Train or validation dataset?
         assert subset in ["train", "val"]
@@ -155,8 +156,67 @@ class BalloonDataset(utils.Dataset):
                 polygons = [r['shape_attributes'] for r in a['regions']]
                 objects = [s['region_attributes'] for s in a['regions']] 
             
+            # polygons = [r['shape_attributes'] for r in a['regions'].values()]
+            # objects = [s['region_attributes'] for s in a['regions'].values()]
 
-            num_ids = [int(n['object']) for n in objects]
+            #print("objects=", objects)
+
+            
+            num_ids=[]
+            for n in objects:
+                try:
+                    if n['name']=='Basketball':
+                        num_ids.append(1)
+                    elif n['name']=='BasketballDunk':
+                        num_ids.append(2)
+                    elif n['name']=='Biking':
+                        num_ids.append(3)
+                    elif n['name']=='CliffDiving':
+                        num_ids.append(4)
+                    elif n['name']=='CricketBowling':
+                        num_ids.append(5)
+                    elif n['name']=='Diving':
+                        num_ids.append(6)
+                    elif n['name']=='Fencing':
+                        num_ids.append(7)
+                    elif n['name']=='FloorGymnastics':
+                        num_ids.append(8)
+                    elif n['name']=='GolfSwing':
+                        num_ids.append(9)
+                    elif n['name']=='HorseRiding':
+                        num_ids.append(10)
+                    elif n['name']=='IceDancing':
+                        num_ids.append(11)
+                    elif n['name']=='LongJump':
+                        num_ids.append(12)
+                    elif n['name']=='PoleVault':
+                        num_ids.append(13)
+                    elif n['name']=='RopeClimbing':
+                        num_ids.append(14)
+                    elif n['name']=='SalsaSpin':
+                        num_ids.append(15)
+                    elif n['name']=='SkateBoarding':
+                        num_ids.append(16)
+                    elif n['name']=='Skiing':
+                        num_ids.append(17)
+                    elif n['name']=='Skijet':
+                        num_ids.append(18)
+                    elif n['name']=='SoccerJuggling':
+                        num_ids.append(19)
+                    elif n['name']=='Surfing':
+                        num_ids.append(20)
+                    elif n['name']=='TennisSwing':
+                        num_ids.append(21)
+                    elif n['name']=='TrampolineJumping':
+                        num_ids.append(22)
+                    elif n['name']=='VolleyballSpiking':
+                        num_ids.append(23)
+                    elif n['name']=='WalkingWithDog':
+                        num_ids.append(24)
+                except:
+                    pass
+
+
 
             # load_mask() needs the image size to convert polygons to masks.
             # Unfortunately, VIA doesn't include it in JSON, so we must read
@@ -166,7 +226,7 @@ class BalloonDataset(utils.Dataset):
             height, width = image.shape[:2]
 
             self.add_image(
-                "balloon",
+                "name",
                 image_id=a['filename'],  # use file name as a unique image id
                 path=image_path,
                 width=width, height=height,
@@ -182,7 +242,7 @@ class BalloonDataset(utils.Dataset):
         """
         # If not a balloon dataset image, delegate to parent class.
         image_info = self.image_info[image_id]
-        if image_info["source"] != "balloon":
+        if image_info["source"] != "name":
             return super(self.__class__, self).load_mask(image_id)
         num_ids = image_info['num_ids']
         # Convert polygons to a bitmap mask of shape
@@ -203,7 +263,7 @@ class BalloonDataset(utils.Dataset):
     def image_reference(self, image_id):
         """Return the path of the image."""
         info = self.image_info[image_id]
-        if info["source"] == "balloon":
+        if info["source"] == "name":
             return info["path"]
         else:
             super(self.__class__, self).image_reference(image_id)
